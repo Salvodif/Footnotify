@@ -1,0 +1,243 @@
+# test_settings.yaml
+# Settings specifically for testing extract_notes.py
+
+reference_types:
+  book:
+    template: "Author, <i>Title</i> (Place: Publisher, Date). Edition. ISBN." # Added Edition and ISBN
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),'
+      Title: '<i>(?P<Title>[^<]+)</i>'
+      Place: '\((?P<Place>[^:]+):'
+      Publisher: ':\s*(?P<Publisher>[^,]+),'
+      Date: ', (?P<Date>\d{4})\)\.' # Matches year before closing parenthesis and period
+      Edition: '\.\s*(?P<Edition>Edition \d+| \d+(?:st|nd|rd|th) ed\.)?' # Optional: "Edition 2" or "2nd ed."
+      ISBN: '\s*ISBN (?P<ISBN>\d+)\.?' # Optional
+    required_fields: ["Author", "Title", "Place", "Publisher", "Date"]
+    # For DOCX Footnote 1 ("John Author, <i>The Great Book</i> (Cityville: PubCo, 2023). Edition 2."):
+    # Required: Author, Title, Place, Publisher, Date (all present)
+    # Optional: Edition (present), ISBN (absent). 1 of 2 optional matched.
+    # To make this GREEN, Edition must be matched, and that should be > 50% of optional.
+    # If 2 optional fields (Edition, ISBN), 1 matched is 50%, so it would be YELLOW.
+    # Let's make Edition the *only* optional field for this test type to guarantee green if present.
+    # OR, ensure the definition of green is ">=50%" if only one optional.
+    # The code is "> len(optional_field_names) / 2". So 1/2 is not > 0.5. 1/1 is > 0.5.
+    # So, if Edition is the only optional, and it matches, it's Green.
+    # Let's redefine book for DOCX test:
+    # Remove ISBN from template and fields for the DOCX test case for simplicity with 'Edition'.
+
+  # Book type tailored for DOCX test (Footnote 1 - Green)
+  # "John Author, <i>The Great Book</i> (Cityville: PubCo, 2023). Edition 2."
+  book_docx_test:
+    template: "Author, <i>Title</i> (Place: Publisher, Date). Edition."
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),'
+      Title: '<i>(?P<Title>[^<]+)</i>'
+      Place: '\((?P<Place>[^:]+):'
+      Publisher: ':\s*(?P<Publisher>[^,]+),'
+      Date: ', (?P<Date>\d{4})\)\.'
+      Edition: '\.\s*(?P<Edition>Edition \d+|\d+(?:st|nd|rd|th) ed\.)' # Made mandatory for this field to be parsed
+    required_fields: ["Author", "Title", "Place", "Publisher", "Date", "Edition"] # All required = Green (no optional)
+    # Alternative: make Edition optional.
+    # template: "Author, <i>Title</i> (Place: Publisher, Date). Edition."
+    # fields: ... Edition: '\.\s*(?P<Edition>(?:Edition \d+|\d+(?:st|nd|rd|th) ed\.))?' (optional regex)
+    # required_fields: ["Author", "Title", "Place", "Publisher", "Date"]
+    # Optional fields: Edition (1). Matched optional: 1. 1 > 1/2. So Green. This is better.
+
+  book_odt_test: # For ODT Footnote 1 (Alice Reader - Green)
+    template: "Author, <i>Title</i> (Place: Publisher, Date). ISBN."
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),'
+      Title: '<i>(?P<Title>[^<]+)</i>'
+      Place: '\((?P<Place>[^:]+):'
+      Publisher: ':\s*(?P<Publisher>[^,]+),'
+      Date: ', (?P<Date>\d{4})\)\.'
+      ISBN: '\s*ISBN (?P<ISBN>[\d-]+)\.?' # Optional
+    required_fields: ["Author", "Title", "Place", "Publisher", "Date"]
+    # Optional fields: ISBN (1). If ISBN matches, it's Green.
+    # "Alice Reader, <i>Another Fine Tome</i> (Townsfolk: PrintPress, 2021). ISBN 12345." -> ISBN matches. Green.
+
+  journalArticle: # For DOCX Footnote 2 (Jane Writer - Yellow)
+    template: "Author, \"ArticleTitle,\" <i>JournalName</i> Volume, no. Issue (Date): Pages."
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),'
+      ArticleTitle: '"(?P<ArticleTitle>[^"]+)"'
+      JournalName: '<i>(?P<JournalName>[^<]+)</i>'
+      Volume: '\s(?P<Volume>\d+),' # Optional
+      Issue: 'no\.\s*(?P<Issue>\d+)' # Optional
+      Date: '\((?P<Date>\d{4})\)'
+      Pages: ':\s*(?P<Pages>[\d\s-]+)\.' # Optional
+    required_fields: ["Author", "ArticleTitle", "JournalName", "Date"]
+    # Example: "Jane Writer, "An Article Title," <i>Journal of Studies</i> 10, no. 2 (2022): 150."
+    # Required: Author, ArticleTitle, JournalName, Date (all present)
+    # Optional: Volume (present as "10"), Issue (present as "2"), Pages (present as "150").
+    # All 3 optional fields are present. 3 > 3/2. This would be GREEN.
+    # To make it YELLOW, ensure some optional fields are MISSING.
+    # Let's make Pages optional and MISSING in the example text for the test file.
+    # DOCX Footnote 2: "Jane Writer, "An Article Title," <i>Journal of Studies</i> 10, no. 2 (2022)." (Removed pages)
+    # Now, Optional: Volume (present), Issue (present), Pages (absent). 2 of 3 optional matched.
+    # 2 > 3/2 is 2 > 1.5, which is true. Still GREEN.
+    #
+    # Let's make Volume and Issue optional, and Pages also optional.
+    # If example is: "Jane Writer, "An Article Title," <i>Journal of Studies</i> (2022)."
+    # Optional: Volume (missing), Issue (missing), Pages (missing). 0 of 3 matched. 0 is not > 1.5. YELLOW.
+    # This is a good test for YELLOW.
+    # So, DOCX Footnote 2 should be: "Jane Writer, "An Article Title," <i>Journal of Studies</i> (2022)."
+
+  webPage: # For ODT Footnote 2 (Bob Online - Yellow)
+    template: "Author, \"PageTitle,\" <i>WebsiteName</i>, DatePublished, URL."
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),?' # Optional Author
+      PageTitle: '"(?P<PageTitle>[^"]+)"'
+      WebsiteName: '<i>(?P<WebsiteName>[^<]+)</i>'
+      DatePublished: ',\s*(?P<DatePublished>(?:Accessed|Published)\s[\w\s,]+\d{4}),?' # Optional
+      URL: '(?P<URL>https?://[^\s]+)\.$' # Optional, ensure it's at the end.
+    required_fields: ["PageTitle", "WebsiteName"]
+    # Example: "Bob Online, "Web Thoughts," <i>Bob's Site</i>, Accessed July 20, 2023." (Missing URL)
+    # Required: PageTitle, WebsiteName (present)
+    # Optional: Author (present), DatePublished (present), URL (absent).
+    # 2 of 3 optional matched. 2 > 3/2 is 2 > 1.5. This is GREEN.
+    # To make it YELLOW, we need fewer optional.
+    # Example: "Bob Online, "Web Thoughts," <i>Bob's Site</i>." (Missing DatePublished and URL)
+    # Optional: Author (present), DatePublished (absent), URL (absent). 1 of 3 optional.
+    # 1 > 1.5 is false. YELLOW.
+    # So, ODT Footnote 2 should be: "Bob Online, "Web Thoughts," <i>Bob's Site</i>."
+
+special_classics:
+  STh: "Thomas Aquinas, <i>Summa Theologiae</i>"
+  DS: "Henricus Denzinger, Peter Hünermann (eds.), <i>Enchiridion symbolorum definitionum et declarationum de rebus fidei et morum</i>"
+
+# Final plan for test_settings.yaml based on above thoughts:
+# book_docx_test:
+#   Required: Author, Title, Place, Publisher, Date
+#   Optional: Edition (1)
+#   DOCX Footnote 1: "John Author, <i>The Great Book</i> (Cityville: PubCo, 2023). Edition 2." -> Matches all req + Edition. GREEN.
+#
+# journalArticle:
+#   Required: Author, ArticleTitle, JournalName, Date
+#   Optional: Volume, Issue, Pages (3)
+#   DOCX Footnote 2: "Jane Writer, "An Article Title," <i>Journal of Studies</i> (2022)." -> Matches all req. 0 optional. YELLOW.
+#
+# book_odt_test:
+#   Required: Author, Title, Place, Publisher, Date
+#   Optional: ISBN (1)
+#   ODT Footnote 1: "Alice Reader, <i>Another Fine Tome</i> (Townsfolk: PrintPress, 2021). ISBN 12345." -> Matches all req + ISBN. GREEN.
+#
+# webPage:
+#   Required: PageTitle, WebsiteName
+#   Optional: Author, DatePublished, URL (3)
+#   ODT Footnote 2: ""Web Thoughts," <i>Bob's Site</i>." (Author also removed for simplicity of test) -> Matches all req. 0 optional. YELLOW.
+#   If Author is kept: "Bob Online, "Web Thoughts," <i>Bob's Site</i>." -> 1 optional (Author). YELLOW. Let's use this.
+#
+# These changes will require updating the footnote content in step 1.
+# I will provide the final YAML content directly.
+# The explanations above are my thought process for arriving at the test cases.
+#
+# The 'book' type is general and might be used if 'book_docx_test' or 'book_odt_test' are too specific or fail.
+# For the test, it's better to have distinct types for distinct test cases if their field structure (esp. optional counts) matters.
+# Let's rename 'book_docx_test' to 'bookForDocxTest' and 'book_odt_test' to 'bookForOdtTest' for clarity in the YAML.
+# And ensure the regexes are robust enough for the given examples.
+# Date for book: ', (?P<Date>\d{4})\)\.' needs to handle the trailing period.
+# Edition for book_docx_test: '\.\s*(?P<Edition>(?:Edition \d+|\d+(?:st|nd|rd|th) ed\.))' - non-capturing group for choice, then capture.
+# ISBN for book_odt_test: '\s*ISBN (?P<ISBN>[\d-]+)\.?' - allow hyphens, optional period.
+# Volume for journalArticle: '\s(?P<Volume>\d+),?' - make comma optional if volume is last. (No, example needs it for now)
+# Issue for journalArticle: 'no\.\s*(?P<Issue>\d+)?' - make optional.
+# Pages for journalArticle: ':\s*(?P<Pages>[\d\s-]+)\.?' - make period optional.
+#
+# Simpler approach: Use a single 'book' type, make 'Edition' and 'ISBN' optional.
+# The DOCX test will match 'Edition', ODT test will match 'ISBN'.
+# Both will be GREEN if they match their specific optional field and all required.
+#
+# book:
+#   Required: Author, Title, Place, Publisher, Date (5)
+#   Optional: Edition, ISBN (2)
+#   DOCX F1: "John Author, <i>The Great Book</i> (Cityville: PubCo, 2023). Edition 2."
+#     - Matches 5 required. Matches Edition. (1 optional). 1 > 2/2 is 1 > 1, which is FALSE. YELLOW.
+#     - This means my confidence logic "> len(opt)/2" for GREEN might be too strict.
+#     - If it's ">= len(opt)/2" and len(opt)>0, then 1/2 would be GREEN.
+#     - Current logic: `matched_optional_fields_count > len(optional_field_names) / 2`
+#     - Yes, 1 optional matched out of 2 total optional: 1 > 2/2 is 1 > 1 is FALSE. So YELLOW.
+#     - To get GREEN for the book example (John Author), if Edition is the only optional matched out of 2.
+#       We need `matched_optional_fields_count` (1) to be `> len(optional_field_names)/2` (1).
+#       This is not possible.
+#       This means a single optional field matched out of two will always be Yellow.
+#       If there is only ONE optional field, and it's matched: 1 > 1/2 is TRUE. GREEN.
+#
+# Okay, let's adjust the test_settings.yaml and DOCX/ODT footnote content to clearly hit Green/Yellow targets.
+#
+# Revised plan for `test_settings.yaml` and matching footnotes:
+#
+# `test_settings.yaml`:
+#   `book`:
+#     Required: Author, Title, Date
+#     Optional: Place, Publisher, Edition, ISBN (4 optional)
+#     DOCX F1 (Book Green): "John Author, <i>The Great Book</i> (Cityville: PubCo, 2023). Edition 2."
+#       - Matches 3 required. Matches Place, Publisher, Edition (3 optional). 3 > 4/2 (i.e. 3 > 2). GREEN.
+#     ODT F1 (Book Green): "Alice Reader, <i>Another Fine Tome</i> (Townsfolk: PrintPress, 2021). ISBN 12345. Edition 1."
+#       - Matches 3 required. Matches Place, Publisher, ISBN, Edition (4 optional). 4 > 4/2. GREEN.
+#
+#   `journalArticle`:
+#     Required: Author, ArticleTitle, JournalName
+#     Optional: Volume, Issue, Date, Pages (4 optional)
+#     DOCX F2 (Journal Yellow): "Jane Writer, "An Article Title," <i>Journal of Studies</i> (2022)."
+#       - Matches 3 required. Matches Date (1 optional). 1 > 4/2 (i.e. 1 > 2) is FALSE. YELLOW.
+#
+#   `webPage`:
+#     Required: PageTitle
+#     Optional: Author, WebsiteName, DatePublished, URL (4 optional)
+#     ODT F2 (Web Yellow): "Bob Online, "Web Thoughts," <i>Bob's Site</i>."
+#       - Matches 1 required. Matches Author, WebsiteName (2 optional). 2 > 4/2 (i.e. 2 > 2) is FALSE. YELLOW.
+
+# This looks like a solid plan for settings and corresponding footnote text.
+# I will now write this `test_settings.yaml`.Okay, I will proceed with generating the content for `test_settings.yaml` and defining the structure for the test documents. Then, I'll provide the Python code modifications for `extract_notes.py`.
+
+**1. Test Input File Content Definitions (Revised for Clarity with `test_settings.yaml`):**
+
+*Self-Correction/Clarification*: The worker (myself) will generate the text content and describe the formatting. The actual DOCX/ODT files would need to be created manually using Word/LibreOffice with this content and formatting.
+
+**a. `test_document.docx` Content:**
+
+*   **Main Document Body:**
+    *   "This is a test document for DOCX. It contains several footnotes.
+        Footnote for a book.^(Footnote1)
+        Footnote for a journal article.^(Footnote2)
+        Footnote that should not match.^(Footnote3)
+        Footnote for a special classic.^(Footnote4)"
+*   **Footnote 1 Text (Book - Aim: Green):**
+    *   "John Author, <i>The Great Book</i> (Cityville: PubCo, 2023). Edition 2."
+    *   *Formatting*: "The Great Book" in italics.
+*   **Footnote 2 Text (Journal Article - Aim: Yellow):**
+    *   "Jane Writer, "An Article Title," <i>Journal of Studies</i> (2022)."
+    *   *Formatting*: "Journal of Studies" in italics. "An Article Title" in quotes.
+*   **Footnote 3 Text (No Match - Aim: Red):**
+    *   "Unmatchable Reference, Some Details, 1999."
+    *   *Formatting*: None.
+*   **Footnote 4 Text (Special Classic - Aim: Green):**
+    *   "STh II-II, q. 47, a. 1."
+    *   *Formatting*: None.
+
+**b. `test_document.odt` Content:**
+
+*   **Main Document Body:**
+    *   "This is an ODT test document. It features different footnotes.
+        A book reference.^(Footnote1)
+        A web page reference.^(Footnote2)
+        A very short note.^(Footnote3)
+        And finally, a Denzinger reference.^(Footnote4)"
+*   **Footnote 1 Text (Book - Aim: Green):**
+    *   "Alice Reader, <i>Another Fine Tome</i> (Townsfolk: PrintPress, 2021). ISBN 12345. Edition 1."
+    *   *Formatting*: "Another Fine Tome" in italics.
+*   **Footnote 2 Text (Web Page - Aim: Yellow):**
+    *   "Bob Online, "Web Thoughts," <i>Bob's Site</i>."
+    *   *Formatting*: "Bob's Site" in italics. "Web Thoughts" in quotes.
+*   **Footnote 3 Text (No Match/Minimal - Aim: Red):**
+    *   "Just a few words."
+    *   *Formatting*: None.
+*   **Footnote 4 Text (Special Classic - Aim: Green):**
+    *   "DS 4501."
+    *   *Formatting*: None.
+
+---
+
+**2. Content for `test_data/test_settings.yaml`:**
+
+This YAML content should be saved in a file named `test_settings.yaml` inside a directory named `test_data`.

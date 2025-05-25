@@ -1,0 +1,42 @@
+# settings.yaml
+
+reference_types:
+  book:
+    template: "Author, <i>Title</i> (Place: Publisher, Date)."
+    # Basic regex patterns, these will likely need refinement
+    # The idea is to capture the content of each field
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),' # Matches names like "Last, First M." or "Multiple Authors et al.,"
+      Title: '<i>(?P<Title>[^<]+)</i>' # Matches content within <i></i>
+      Place: '\((?P<Place>[^:]+):' # Matches content within ( ) before a colon
+      Publisher: ':\s*(?P<Publisher>[^,]+),' # Matches content after ": " and before a comma
+      Date: ', (?P<Date>\d{4})\)\.' # Matches a 4-digit year before a closing parenthesis and period
+    required_fields: ["Author", "Title", "Publisher", "Date"]
+
+  journalArticle:
+    template: "Author, "ArticleTitle," <i>JournalName</i> Volume, no. Issue (Date): Pages."
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),'
+      ArticleTitle: '"(?P<ArticleTitle>[^"]+)"' # Content within quotes
+      JournalName: '<i>(?P<JournalName>[^<]+)</i>' # Content within <i></i>
+      Volume: ', (?P<Volume>\d+),' # A number surrounded by commas
+      Issue: 'no\.\s*(?P<Issue>\d+)' # "no. " followed by a number
+      Date: '\((?P<Date>\d{4})\)' # (YYYY)
+      Pages: ':\s*(?P<Pages>[\d\s-]+)\.' # number(s) with potential hyphens/spaces before a period
+    required_fields: ["Author", "ArticleTitle", "JournalName", "Date", "Pages"]
+
+  webPage:
+    template: "Author, "PageTitle," <i>WebsiteName</i>, DatePublished, URL."
+    fields:
+      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),?' # Optional Author
+      PageTitle: '"(?P<PageTitle>[^"]+)"'
+      WebsiteName: '<i>(?P<WebsiteName>[^<]+)</i>'
+      DatePublished: ', (?P<DatePublished>\w+\s\d{1,2},\s\d{4}),' # e.g., January 1, 2023
+      URL: ', (?P<URL>https?://[^\s]+)\.'
+    required_fields: ["PageTitle", "WebsiteName", "URL"]
+
+# Add more types as needed: bookSection, conferencePaper, forumPost, dictionaryEntry, interview, letter
+
+special_classics:
+  STh: "Thomas Aquinas, <i>Summa Theologiae</i>" # Example, user can add more
+  DS: "Henricus Denzinger, Peter Hünermann (eds.), <i>Enchiridion symbolorum definitionum et declarationum de rebus fidei et morum</i>"
