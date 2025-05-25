@@ -192,3 +192,28 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## 📜 License
 
 This project is licensed under the MIT License - see the `LICENSE` file (if one is provided in the repository) or assume standard MIT License terms.
+
+---
+
+## 🚀 Future Enhancements (TODO)
+
+*   **Advanced Regex Management & GUI**:
+    *   Develop a library for complex regex patterns within `settings.yaml` or a linked file.
+    *   Create a UI (web or text-based) for testing regex patterns against sample footnotes.
+*   **Improved Confidence Scoring & Ambiguity Handling**:
+    *   Allow weighted fields for more nuanced confidence scores.
+    *   Implement mechanisms to flag or manage ambiguous matches (e.g., when a footnote matches multiple types).
+*   **Enhanced Output Options**:
+    *   Add functionality to generate a bibliography from processed footnotes.
+    *   Support output in other formats (e.g., plain text, Markdown).
+    *   Allow user customization of confidence colors in `settings.yaml`.
+*   **User Experience and Workflow**:
+    *   Implement robust batch processing for multiple documents.
+    *   Add a `requirements.txt` file for easier dependency management. (Note: This was mentioned in the installation section as a way to install, but an actual file in the repo could be added).
+    *   Provide more detailed error reporting for settings and regex issues.
+*   **Parsing Robustness**:
+    *   Incorporate heuristics for correcting common OCR errors.
+    *   Improve text normalization to handle variations in punctuation and spacing.
+    *   Investigate support for legacy binary `.dot` files if required.
+*   **Direct Document Modification (Advanced)**:
+    *   Explore options for re-inserting formatted footnotes back into the source document (with caution due to complexity and risk).
