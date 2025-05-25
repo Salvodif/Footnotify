@@ -1,6 +1,6 @@
 <div align="center">
-<p><em># 📝 Footnotify.</em></p><br/>
-DOCX and ODT Footnote Extractor & Formatter
+<p><em># 📝 Footnotify.</em><br/>
+DOCX and ODT Footnote Extractor & Formatter</p>
 
 <p><img src="https://raw.githubusercontent.com/salvodif/Footnotify/main/assets/logo.png" width="300" alt="TomeTrove Logo" /></p>
 
