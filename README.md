@@ -1,15 +1,14 @@
 # 📝 Footnotify - DOCX and ODT Footnote Extractor
 <div align="center">
   <img src="https://raw.githubusercontent.com/salvodif/Footnotify/main/assets/logo.png" width="300" alt="TomeTrove Logo" />
-</div>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/downloads/)
-<!-- Per aggiungere altri badge una volta che il repo è attivo:
-[![GitHub stars](https://img.shields.io/github/stars/TUO_USERNAME/NOME_TUO_REPO?style=social)](https://github.com/TUO_USERNAME/NOME_TUO_REPO/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/TUO_USERNAME/NOME_TUO_REPO)](https://github.com/TUO_USERNAME/NOME_TUO_REPO/issues)
-[![GitHub forks](https://img.shields.io/github/forks/TUO_USERNAME/NOME_TUO_REPO?style=social)](https://github.com/TUO_USERNAME/NOME_TUO_REPO/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/salvodif/footnotify?style=social)](https://github.com/salvodif/footnotify/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/salvodif/footnotify)](https://github.com/salvodif/footnotify/issues)
+[![GitHub forks](https://img.shields.io/github/forks/salvodif/footnotify?style=social)](https://github.com/salvodif/footnotify/network/members)
 -->
+</div>
 
 This Python script extracts all footnotes from a Microsoft Word (`.docx`) or OpenDocument Text (`.odt`) file and lists them sequentially in a new `.odt` file.
 It attempts to preserve basic text formatting (bold, italic, underline) and uses the [Rich](https://github.com/Textualize/rich) library for an enhanced, interactive command-line experience.
