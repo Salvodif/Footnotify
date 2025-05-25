@@ -1,8 +1,9 @@
 <div align="center">
-# 📝 Footnotify
+<p><em># 📝 Footnotify.</em></p><br/>
 DOCX and ODT Footnote Extractor & Formatter
 
-  <img src="https://raw.githubusercontent.com/salvodif/Footnotify/main/assets/logo.png" width="300" alt="TomeTrove Logo" />
+<img src="https://raw.githubusercontent.com/salvodif/Footnotify/main/assets/logo.png" width="300" alt="TomeTrove Logo" />
+<p>&nbsp;</p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/downloads/)
