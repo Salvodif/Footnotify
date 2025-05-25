@@ -1,7 +1,13 @@
 # 📝 Footnotify - DOCX and ODT Footnote Extractor & Formatter
+<div align="center">
+  <img src="https://raw.githubusercontent.com/salvodif/Footnotify/main/assets/logo.png" width="300" alt="TomeTrove Logo" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/downloads/)
+[![GitHub stars](https://img.shields.io/github/stars/salvodif/footnotify?style=social)](https://github.com/salvodif/footnotify/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/salvodif/footnotify)](https://github.com/salvodif/footnotify/issues)
+[![GitHub forks](https://img.shields.io/github/forks/salvodif/footnotify?style=social)](https://github.com/salvodif/footnotify/network/members)
+</div>
 
 This Python script extracts footnotes from Microsoft Word (`.docx`) or OpenDocument Text (`.odt`) files. Its primary purpose is to then parse these footnotes, attempt to identify their structure based on user-defined rules, and reformat them into a standardized citation style. The reformatted footnotes are saved in a new `.odt` file, with text color-coded to indicate the confidence of the parsing and formatting.
 
