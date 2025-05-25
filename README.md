@@ -7,7 +7,6 @@
 [![GitHub stars](https://img.shields.io/github/stars/salvodif/footnotify?style=social)](https://github.com/salvodif/footnotify/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/salvodif/footnotify)](https://github.com/salvodif/footnotify/issues)
 [![GitHub forks](https://img.shields.io/github/forks/salvodif/footnotify?style=social)](https://github.com/salvodif/footnotify/network/members)
--->
 </div>
 
 This Python script extracts all footnotes from a Microsoft Word (`.docx`) or OpenDocument Text (`.odt`) file and lists them sequentially in a new `.odt` file.
