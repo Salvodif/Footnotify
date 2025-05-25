@@ -1,4 +1,7 @@
 # 📝 Footnotify - DOCX and ODT Footnote Extractor
+<div align="center">
+  <img src="https://raw.githubusercontent.com/salvodif/TomeTrove/main/assets/tometrove_logo_banner.png" width="300" alt="TomeTrove Logo" />
+</div>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/downloads/)
