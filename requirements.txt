@@ -1,0 +1,4 @@
+python-docx
+odfpy
+PyYAML
+rich
