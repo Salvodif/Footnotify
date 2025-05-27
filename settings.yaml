@@ -2,16 +2,16 @@
 
 reference_types:
   book:
-    template: "Author, <i>Title</i> (Place: Publisher, Date)."
-    # Basic regex patterns, these will likely need refinement
-    # The idea is to capture the content of each field
+    template: "Author, <i>Title</i>, ed. Editor (PublicationInfoRaw), Pages (Reference)."
     fields:
-      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),' # Matches names like "Last, First M." or "Multiple Authors et al.,"
-      Title: '<i>(?P<Title>[^<]+)</i>' # Matches content within <i></i>
-      Place: '\((?P<Place>[^:]+):' # Matches content within ( ) before a colon
-      Publisher: ':\s*(?P<Publisher>[^,]+),' # Matches content after ": " and before a comma
-      Date: ', (?P<Date>\d{4})\)\.' # Matches a 4-digit year before a closing parenthesis and period
-    required_fields: ["Author", "Title", "Publisher", "Date"]
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\[(?P<Author>[^\]]+)\]'
+      Title: ',\s*<i>(?P<Title>[^<]+)</i>'
+      Editor: '(?:,\s*ed\.\s+(?P<Editor>[^,(]+))?'
+      PublicationInfoRaw: '(?:\s*\((?P<PublicationInfoRaw>[^)]+)\))?'
+      Pages: '(?:,\s*(?P<Pages>[\d\s-]+(?:\s*-\s*\d+)?))?'
+      Reference: '(?:\s*\((?P<Reference>[^)]+)\))?(?:[.;])?'
+    required_fields: ["Author", "Title"]
 
   journalArticle:
     template: "Author, "ArticleTitle," <i>JournalName</i> Volume, no. Issue (Date): Pages."
@@ -26,14 +26,82 @@ reference_types:
     required_fields: ["Author", "ArticleTitle", "JournalName", "Date", "Pages"]
 
   webPage:
-    template: "Author, "PageTitle," <i>WebsiteName</i>, DatePublished, URL."
+    template: "Author, <i>PageTitle</i>, WebsiteName, PublisherPlatform, DatePublished, URL."
     fields:
-      Author: '(?P<Author>[A-Z][A-Za-z\s.,]+(?:et al\.)?),?' # Optional Author
-      PageTitle: '"(?P<PageTitle>[^"]+)"'
-      WebsiteName: '<i>(?P<WebsiteName>[^<]+)</i>'
-      DatePublished: ', (?P<DatePublished>\w+\s\d{1,2},\s\d{4}),' # e.g., January 1, 2023
-      URL: ', (?P<URL>https?://[^\s]+)\.'
-    required_fields: ["PageTitle", "WebsiteName", "URL"]
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\[(?P<Author>[^\]]+)\]'
+      PageTitle: ',\s*<i>(?P<PageTitle>[^<]+)</i>,'
+      WebsiteName: '\s*(?P<WebsiteName>[^,]+),'
+      PublisherPlatform: '(?:\s*(?P<PublisherPlatform>[^,]+),)?' # Optional
+      DatePublished: '\s*(?P<DatePublished>\w+\s\d{1,2},\s\d{4}),'
+      URL: '\s*(?P<URL>https?://[^\s]+)\.'
+    required_fields: ["Author", "PageTitle", "WebsiteName", "URL"]
+
+  dictionaryEntry:
+    template: "Author, "Term," in <i>DictionaryTitle</i> (Place: Publisher, Date)."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\[(?P<Author>[^\]]+)\]' # Escaped brackets for YAML
+      Term: ',\s*"(?P<Term>[^"]+)"'
+      KeywordIn: ',\s*in\s+'
+      DictionaryTitle: '<i>(?P<DictionaryTitle>[^<]+)</i>'
+      Place: '(?:\s*\((?P<Place>[^:]+):)?' # Optional parentheses for place
+      Publisher: '(?:\s*:\s*(?P<Publisher>[^,\)]+))?' # Optional publisher
+      Date: '\s*(?P<Date>\d{4})\)(?:[.;])?' # Date inside parentheses
+    required_fields: ["Author", "Term", "DictionaryTitle", "Date"]
+
+  bookChapter:
+    template: "Author, “<i>ChapterTitle</i>,” in BookTitle, Editor (Place: Publisher, Date), Pages (SectionReference)."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\[(?P<Author>[^\]]+)\]' # Escaped brackets for YAML
+      ChapterTitle: ',\s*“<i>(?P<ChapterTitle>[^<]+)</i>”' # Italics inside smart quotes
+      KeywordIn: ',\s*in\s+'
+      BookTitle: '(?P<BookTitle>[^,]+?),' 
+      Editor: '(?:ed\.\s+(?P<Editor>[^,(]+),)?' # Optional editor
+      Place: '(?:\s*\((?P<Place>[^:]+):)?'
+      Publisher: '(?:\s*:\s*(?P<Publisher>[^,\)]+))?'
+      Date: '\s*(?P<Date>\d{4})\)(?:[.;])?' 
+      Pages: '(?:,\s*(?P<Pages>[\d-]+))?'
+      SectionReference: '(?: \((?P<SectionReference>[^)]+)\))?\.'
+    required_fields: ["Author", "ChapterTitle", "BookTitle", "Date"]
+
+  itemInBook:
+    template: "Author, "ItemTitle," in <i>BookTitle</i>, ed. Editor (PublicationInfoRaw), Page."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\[(?P<Author>[^\]]+)\]'
+      ItemTitle: ',\s*"(?P<ItemTitle>[^"]+)"'
+      KeywordIn: ',\s*in\s+'
+      BookTitle: '<i>(?P<BookTitle>[^<]+)</i>'
+      Editor: '(?:,\s*ed\.\s+(?P<Editor>[^,(]+))?'
+      PublicationInfoRaw: '(?:\s*\((?P<PublicationInfoRaw>[^)]+)\))?'
+      Page: '(?:,\s*(?P<Page>\d+))?(?:[.;])?'
+    required_fields: ["Author", "ItemTitle", "BookTitle"]
+
+  periodicalPublication:
+    template: "Author, "Title," Periodical, vol. Volume, Year, Pages, no. ParagraphNo."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\[(?P<Author>[^\]]+)\]'
+      Title: ',\s*"(?P<Title>[^"]+)",'
+      Periodical: '\s*(?P<Periodical>[^,]+),'
+      Volume: '\s*vol\.\s+(?P<Volume>[^,]+),'
+      Year: '\s*(?P<Year>\d{4}),'
+      Pages: '\s*(?P<Pages>[\d\s-]+(?:\s*-\s*\d+)?),' # Allow spaces in page ranges
+      ParagraphNo: '\s*no\.\s*(?P<ParagraphNo>[^.]+)\.'
+    required_fields: ["Author", "Title", "Periodical", "Volume", "Year", "Pages"]
+
+  conferencePaper:
+    template: "Author, "ArticleTitle," ConferenceName, ConferenceDate, Pages."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\[(?P<Author>[^\]]+)\]'
+      ArticleTitle: ',\s*"(?P<ArticleTitle>[^"]+)",'
+      ConferenceName: '\s*(?P<ConferenceName>[^,]+),'
+      ConferenceDate: '\s*(?P<ConferenceDate>\w+\s\d{1,2},\s\d{4}),'
+      Pages: '\s*(?P<Pages>[\d\s-]+(?:\s*-\s*\d+)?)\.' # Allow spaces in page ranges
+    required_fields: ["Author", "ArticleTitle", "ConferenceName", "ConferenceDate", "Pages"]
 
 # Add more types as needed: bookSection, conferencePaper, forumPost, dictionaryEntry, interview, letter
 
