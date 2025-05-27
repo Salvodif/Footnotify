@@ -524,18 +524,12 @@ def format_parsed_footnote(matched_type: str, parsed_fields: dict, settings: dic
         A list of (text_segment, format_dict) tuples.
     """
     if not matched_type:
-        # If there's no matched type, we might return the preprocessed text
-        # as a single segment with no formatting, or handle as an error.
-        # For now, let's assume preprocessed_text was in parsed_fields if needed,
-        # or handle this case upstream. Or return empty list.
-        # Based on current structure, parsed_fields might be empty if no match.
-        # Let's return a single segment with the "original" text if available,
-        # or an empty list if not.
-        # This function expects a valid matched_type.
-        # If called with no matched_type, it implies an issue upstream or
-        # a direct call with non-parsed data.
-        # For safety, return empty list.
-        return []
+        # If matched_type is None, try to format preprocessed_text if available
+        if parsed_fields and 'preprocessed_text' in parsed_fields:
+            preprocessed_text = parsed_fields['preprocessed_text']
+            if preprocessed_text and isinstance(preprocessed_text, str): # Ensure it's a non-empty string
+                return _parse_html_like_tags_to_format_list(preprocessed_text)
+        return [] # Fallback for no matched_type and no valid preprocessed_text
 
     if matched_type == 'special_classic':
         full_citation = parsed_fields.get('full_citation', '')

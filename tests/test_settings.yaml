@@ -1,0 +1,78 @@
+# tests/test_settings.yaml
+# This file provides a controlled set of reference types and special classics
+# for testing the footnote parsing and formatting logic.
+# It is intentionally simpler than the main settings.yaml to ensure tests
+# are predictable and focused on specific scenarios.
+
+reference_types:
+  # Type 1: Basic Book for testing core field extraction and template formatting
+  testBook:
+    template: "Author, <i>Title</i> (Place: Publisher, Year)."
+    fields:
+      Author: '^(?P<Author>[A-Za-z\s,.]+?),' # Simple author regex
+      Title: '<i>(?P<Title>.+?)</i>'
+      Place: '\((?P<Place>[^:]+):'
+      Publisher: ':\s*(?P<Publisher>[^,]+),'
+      Year: ',\s*(?P<Year>\d{4})\)\.'
+    required_fields: ["Author", "Title", "Year"]
+
+  # Type 2: Journal Article for testing different field types and punctuation
+  testJournalArticle:
+    template: "Author, \"ArticleTitle,\" <i>JournalName</i> Vol. Volume (Year): Pages."
+    fields:
+      Author: '^(?P<Author>[A-Za-z\s,.]+?),'
+      ArticleTitle: '"(?P<ArticleTitle>.+?)"'
+      JournalName: '<i>(?P<JournalName>.+?)</i>'
+      Volume: 'Vol\.\s*(?P<Volume>\d+)'
+      Year: '\((?P<Year>\d{4})\):'
+      Pages: ':\s*(?P<Pages>[\d-]+)\.'
+    required_fields: ["Author", "ArticleTitle", "JournalName", "Year", "Pages"]
+
+  # Type 3: Web Page for testing optional fields and different URL patterns
+  testWebPage:
+    template: "Author, \"PageTitle,\" <i>WebsiteName</i>, URL, (Accessed Date)."
+    fields:
+      Author: '^(?P<Author>[A-Za-z\s,.]+?),?' # Optional author
+      PageTitle: '"(?P<PageTitle>.+?)"'
+      WebsiteName: '<i>(?P<WebsiteName>.+?)</i>,'
+      URL: ',\s*(?P<URL>https?://[^\s,]+),' # URL followed by a comma
+      AccessedDate: '\(Accessed\s*(?P<AccessedDate>\w+\s\d{1,2},\s\d{4})\)\.' # (Accessed Month Day, Year).
+    required_fields: ["PageTitle", "WebsiteName", "URL"]
+
+  # Type 4: Special case with only required fields, no optional, for confidence testing
+  testOnlyRequired:
+    template: "Key1: Value1, Key2: Value2."
+    fields:
+      Value1: 'Key1:\s*(?P<Value1>[^,]+),'
+      Value2: 'Key2:\s*(?P<Value2>[^.]+)\.'
+    required_fields: ["Value1", "Value2"]
+
+  # Type 5: Type with specific regex to test 'preprocessed_text' handling when no match
+  testNoMatchExpected:
+    template: "FieldA: ValueA"
+    fields:
+      ValueA: 'FieldA:\s*(?P<ValueA>XYZ123)' # Highly specific, unlikely to match general text
+    required_fields: ["ValueA"]
+
+  # Type 6: Book Chapter (mimicking a more complex structure from main settings)
+  testBookChapter:
+    template: "ChapterAuthor, “<i>ChapterTitle</i>,” in BookTitle, ed. Editor (Place: Publisher, Year), pp. Pages."
+    fields:
+      ChapterAuthor: '^(?P<ChapterAuthor>[A-Za-z\s,.]+?),'
+      ChapterTitle: '“<i>(?P<ChapterTitle>.+?)</i>”'
+      BookTitle: 'in\s+(?P<BookTitle>[^,]+),'
+      Editor: 'ed\.\s+(?P<Editor>[A-Za-z\s,.]+),'
+      Place: '\((?P<Place>[^:]+):'
+      Publisher: ':\s*(?P<Publisher>[^,]+),'
+      Year: ',\s*(?P<Year>\d{4})\),'
+      Pages: 'pp\.\s*(?P<Pages>[\d-]+)\.'
+    required_fields: ["ChapterAuthor", "ChapterTitle", "BookTitle", "Year", "Pages"]
+
+special_classics:
+  TestSTh: "Test Thomas, <i>Test Summa</i>"
+  TestDS: "Test Denzinger, <i>Test Enchiridion</i>. With <b>bold tag</b> and <u>underline tag</u>."
+
+# Note: Regex patterns here are simplified for testing purposes.
+# They may not be as robust as the ones in the main settings.yaml.
+# Ensure that backslashes in regex are correctly escaped for YAML if complex regex are used.
+# For most common regex (like \s, \d, \w, ., +, *, ?, etc.), no extra escaping is needed in YAML single quotes.
