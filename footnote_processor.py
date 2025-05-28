@@ -87,7 +87,7 @@ def parse_and_match_footnote(
                     'matched_type': 'special_classic',
                     'parsed_fields': {'abbreviation': abbr, 'full_citation': full_text_template},
                     'preprocessed_text': preprocessed_text,
-                    'confidence': 'green' 
+                    'confidence': 'match' 
                 }
 
     # 2. Reference Type Matching
@@ -100,7 +100,7 @@ def parse_and_match_footnote(
         # Ensure preprocessed_text is available in parsed_fields if no match, for format_parsed_footnote
         'parsed_fields': {'preprocessed_text': preprocessed_text} if True else {}, # Condition is a placeholder
         'preprocessed_text': preprocessed_text,
-        'confidence': 'red' # Default to red if no match
+        'confidence': 'no_match' # Changed from 'red'
     }
     # Refined logic for initial best_match_so_far.parsed_fields:
     if best_match_so_far['matched_type'] is None:
@@ -121,7 +121,8 @@ def parse_and_match_footnote(
                 try:
                     match = re.search(field_regex, preprocessed_text)
                     if match and field_name in match.groupdict():
-                        extracted_data[field_name] = match.group(field_name).strip()
+                        value = match.group(field_name)
+                        extracted_data[field_name] = value.strip() if value is not None else None
                 except re.error:
                     pass # Ignore regex errors for now
 
@@ -133,72 +134,14 @@ def parse_and_match_footnote(
                     break
             
             if all_required_found and (extracted_data or not required_fields): # Must find all required, and extract something if no required fields
-                # All required fields are found. Now determine confidence (green or yellow).
-                current_confidence = 'yellow' # Default to yellow if required are met
-
-                all_defined_field_names = set(defined_fields.keys())
-                required_field_names = set(required_fields)
-                optional_field_names = all_defined_field_names - required_field_names
-                
-                matched_optional_fields_count = 0
-                for opt_field in optional_field_names:
-                    if opt_field in extracted_data and extracted_data[opt_field]:
-                        matched_optional_fields_count += 1
-                
-                if not optional_field_names: # No optional fields defined
-                    if required_fields: # And there were required fields that were all found
-                        current_confidence = 'green'
-                    # If no required AND no optional, it's a bit ambiguous.
-                    # Let's say if there are fields defined at all, and we matched some, it's yellow.
-                    # If 'fields' is empty, this loop won't run.
-                    # If 'fields' has entries but all are optional and none matched, 'extracted_data' would be empty.
-                    # This case is covered by `(extracted_data or not required_fields)`
-                    # If both required and optional are empty, but `fields` itself has entries,
-                    # and we extract something, it's 'yellow'. If we extract nothing, no match.
-                    elif extracted_data: # No required, no optional, but some fields defined and matched
-                         current_confidence = 'green' # Or yellow? Let's say green if it matches anything in this ambiguous case.
-                    else: # No required, no optional, nothing extracted -> this won't be 'all_required_found'
-                        pass
-
-
-                elif len(optional_field_names) > 0:
-                    if matched_optional_fields_count > len(optional_field_names) / 2:
-                        current_confidence = 'green'
-                
-                # This is the first type that matched its required fields.
-                # Could be enhanced to find the "greenest" match if multiple types pass.
-                # For now, first satisfying match is taken.
-                # If a 'green' match is found, we can probably stop and return it.
-                # If only 'yellow' matches are found, the last one processed will be returned.
-                # This logic can be improved to select the "best" yellow if multiple yellows.
-                
-                # Update best_match_so_far
-                # If current is green, and previous best was not, take current.
-                # If current is yellow, and previous best was red, take current.
-                # (This means we prefer green over yellow, and yellow over red)
-                if current_confidence == 'green':
-                    if best_match_so_far['confidence'] != 'green': # Prioritize green
-                         best_match_so_far = {
-                            'matched_type': ref_type_name,
-                            'parsed_fields': extracted_data,
-                            'preprocessed_text': preprocessed_text,
-                            'confidence': current_confidence
-                        }
-                elif current_confidence == 'yellow':
-                    if best_match_so_far['confidence'] == 'red': # Take yellow if current best is red
-                        best_match_so_far = {
-                            'matched_type': ref_type_name,
-                            'parsed_fields': extracted_data,
-                            'preprocessed_text': preprocessed_text,
-                            'confidence': current_confidence
-                        }
-                # If a green match is found, we can break early as it's the highest.
-                if best_match_so_far['confidence'] == 'green':
-                    # Optionally, one might continue searching to see if other types also yield 'green'
-                    # and then apply a tie-breaking rule (e.g. most fields matched).
-                    # For now, first green is good enough.
-                    break 
-
+                # First type that matches all its required fields is considered the match.
+                best_match_so_far = {
+                    'matched_type': ref_type_name,
+                    'parsed_fields': extracted_data,
+                    'preprocessed_text': preprocessed_text,
+                    'confidence': 'match'
+                }
+                break # Exit loop once a match is found
 
     return best_match_so_far
 
@@ -524,18 +467,12 @@ def format_parsed_footnote(matched_type: str, parsed_fields: dict, settings: dic
         A list of (text_segment, format_dict) tuples.
     """
     if not matched_type:
-        # If there's no matched type, we might return the preprocessed text
-        # as a single segment with no formatting, or handle as an error.
-        # For now, let's assume preprocessed_text was in parsed_fields if needed,
-        # or handle this case upstream. Or return empty list.
-        # Based on current structure, parsed_fields might be empty if no match.
-        # Let's return a single segment with the "original" text if available,
-        # or an empty list if not.
-        # This function expects a valid matched_type.
-        # If called with no matched_type, it implies an issue upstream or
-        # a direct call with non-parsed data.
-        # For safety, return empty list.
-        return []
+        # If matched_type is None, try to format preprocessed_text if available
+        if parsed_fields and 'preprocessed_text' in parsed_fields:
+            preprocessed_text = parsed_fields['preprocessed_text']
+            if preprocessed_text and isinstance(preprocessed_text, str): # Ensure it's a non-empty string
+                return _parse_html_like_tags_to_format_list(preprocessed_text)
+        return [] # Fallback for no matched_type and no valid preprocessed_text
 
     if matched_type == 'special_classic':
         full_citation = parsed_fields.get('full_citation', '')
@@ -1158,20 +1095,14 @@ def get_formatted_and_colored_footnote_segments(
     """
     formatted_segments = format_parsed_footnote(matched_type, parsed_fields, settings)
     
-    green_color = '#00AA00'
-    yellow_color = '#B8860B' # DarkGoldenrod
     red_color = '#AA0000'
 
     colored_segments = []
     for text_segment, base_format_dict in formatted_segments:
         new_fmt = base_format_dict.copy()
-        if confidence_level == 'green':
-            new_fmt['color'] = green_color
-        elif confidence_level == 'yellow':
-            new_fmt['color'] = yellow_color
-        elif confidence_level == 'red':
+        if confidence_level == 'no_match':
             new_fmt['color'] = red_color
-        # If confidence_level is something else, no color is added.
+        # No specific color is applied for 'match', it will use default document text color.
         colored_segments.append((text_segment, new_fmt))
         
     return colored_segments

@@ -1,0 +1,56 @@
+reference_types:
+  book: # As defined for testing, simplified from main settings
+    template: "Author, <i>Title</i>, ed. Editor (PublicationInfoRaw), Pages (Reference)."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?' # No backslashes here needing YAML escape beyond Python string rules
+      Author: '\\[(?P<Author>[^\\]]+)\\]' # \[ and \]
+      Title: ',\s*<i>(?P<Title>[^<]+)</i>' # \s
+      Editor: '(?:,\s*ed\.\s+(?P<Editor>[^,(]+))?' # \s
+      PublicationInfoRaw: '(?:\s*\((?P<PublicationInfoRaw>[^)]+)\))?' # \s, \(, \)
+      Pages: '(?:,\s*(?P<Pages>[\d\s-]+(?:\s*-\s*\d+)?))?' # \s, \d
+      Reference: '(?:\s*\((?P<Reference>[^)]+)\))?(?:[.;])?' # \s, \(, \)
+    required_fields: ["Author", "Title"]
+
+  bookChapter: # As defined for testing
+    template: "Author, “<i>ChapterTitle</i>,” in BookTitle, Editor (Place: Publisher, Date), Pages (SectionReference)."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\\[(?P<Author>[^\\]]+)\\]'
+      ChapterTitle: ',\s*“<i>(?P<ChapterTitle>[^<]+)</i>”' # \s
+      KeywordIn: ',\s*in\s+' # \s
+      BookTitle: '(?P<BookTitle>[^,]+?),'
+      Editor: '(?:ed\.\s+(?P<Editor>[^,(]+),)?' # \s
+      Place: '(?:\s*\((?P<Place>[^:]+):)?' # \s, \(
+      Publisher: '(?:\s*:\s*(?P<Publisher>[^,\)]+))?' # \s, \)
+      Date: '\s*(?P<Date>\d{4})\)(?:[.;])?' # \s, \d, \)
+      Pages: '(?:,\s*(?P<Pages>[\d-]+))?' # \s, \d
+      SectionReference: '(?: \((?P<SectionReference>[^)]+)\))?\.' # \s, \(, \), \.
+    required_fields: ["Author", "ChapterTitle", "BookTitle", "Date"]
+
+  dictionaryEntry: # As defined for testing
+    template: "Author, "Term," in <i>DictionaryTitle</i> (Place: Publisher, Date)."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\\[(?P<Author>[^\\]]+)\\]'
+      Term: ',\s*"(?P<Term>[^"]+)"' # \s
+      KeywordIn: ',\s*in\s+' # \s
+      DictionaryTitle: '<i>(?P<DictionaryTitle>[^<]+)</i>'
+      Place: '(?:\s*\((?P<Place>[^:]+):)?' # \s, \(
+      Publisher: '(?:\s*:\s*(?P<Publisher>[^,\)]+))?' # \s, \)
+      Date: '\s*(?P<Date>\d{4})\)(?:[.;])?' # \s, \d, \)
+    required_fields: ["Author", "Term", "DictionaryTitle", "Date"]
+
+  webPage: # As defined for testing
+    template: "Author, <i>PageTitle</i>, WebsiteName, PublisherPlatform, DatePublished, URL."
+    fields:
+      InitialCf: '^(?:cf\.\s*)?'
+      Author: '\\[(?P<Author>[^\\]]+)\\]'
+      PageTitle: ',\s*<i>(?P<PageTitle>[^<]+)</i>,' # \s
+      WebsiteName: '\s*(?P<WebsiteName>[^,]+),' # \s
+      PublisherPlatform: '(?:\s*(?P<PublisherPlatform>[^,]+),)?' # Optional, \s
+      DatePublished: '\s*(?P<DatePublished>\w+\s\d{1,2},\s\d{4}),' # \s, \w, \d
+      URL: '\s*(?P<URL>https?://[^\s]+)\.' # \s, \.
+    required_fields: ["Author", "PageTitle", "WebsiteName", "URL"]
+
+special_classics:
+  SThTest: "Test Aquinas, <i>Summa Testologiae</i>" # No regex here
